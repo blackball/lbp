@@ -4,6 +4,7 @@
  * @TODO:
  *  :0 int -> double conversion optimization
  *  :1 parallel processing and block-based extraction.
+ *  :2 fast sqrt and memset
  * 
  * @blackball<bugway@gmail.com>
  */
