@@ -54,13 +54,23 @@ static const unsigned char _hist_index[ 256 ] = {
     48,58,49,58,58,58,50,51,52,58,53,54,55,56,57
 };
 
-void lbp_set(struct lbp_setting *setting,
-             int win_w, int win_h,
-             int step_x, int step_y) {
-    
+
+/**
+ * Set the LBP parameters.
+ *
+ * @setting allocated LBP setting structure
+ * @win_w sliding window width
+ * @win_h sliding window height
+ * @step_x step size in x-direction
+ * @step_y step size in y-direction
+ */
+void lbp_init(struct lbp_setting *setting,
+              int win_w, int win_h,
+              int step_x, int step_y) {
+  
     setting->win_w = win_w;
     setting->win_h = win_h;  
-
+  
     /* default configuration */
     setting->step_x = step_x; /* no overlap */
     setting->step_y = step_y; 
@@ -68,16 +78,25 @@ void lbp_set(struct lbp_setting *setting,
     setting->radius = 1;
 }
 
+/**
+ * Get LBP length.
+ *
+ * @setting LBP params
+ * @w image width
+ * @ws width step
+ * @h image height 
+ */
 int lbp_length(const struct LbpSetting *setting,
                int w, int ws, int h) {
+
     if (setting->win_w > w ||
         setting->win_h > h)
         return 1;
   
     return
-            (1 + (w - setting->win_w) / setting->step_x) *
-            (1 + (h - setting->win_h) / setting->step_y) *
-            setting->bin_num;
+        (1 + (w - setting->win_w - 2) / setting->step_x) *
+        (1 + (h - setting->win_h - 2) / setting->step_y) *
+        setting->bin_num;
 }
 
 /**
@@ -137,6 +156,18 @@ void lbp_process(const unsigned char *buffer,
     }
 }
 
+/**
+ * Extract LBP feature from LBP image.
+ * 
+ * @setting LBP settings
+ * @lbp_image LBP image
+ * @w LBP image width
+ * @ws 
+ * @h LBP image height
+ * @feat_vec allocated feature vector
+ * @norm_type normalization method
+ * used in every sliding window, 1 == L1, 2 == L2.
+ */
 void lbp_extract(const struct lbp_setting *setting,
                  const unsigned char *lbp_image,
                  int w, int ws, int h,
@@ -144,23 +175,23 @@ void lbp_extract(const struct lbp_setting *setting,
                  int norm_type) {
 
     int
-            win_w = setting->win_w,
-            win_h = setting->win_h,
-            step_x = setting->step_x,
-            step_y = setting->step_y,
-            win_num_x = 1 + (w - win_w) / step_x,
-            win_num_y = 1 + (h - win_h) / step_y;
-  
+        i,j,ix,iy,bx,by,t,sz,sum,
+        win_w = setting->win_w,
+        win_h = setting->win_h,
+        step_x = setting->step_x,
+        step_y = setting->step_y,
+        win_num_x = 1 + (w - win_w) / step_x,
+        win_num_y = 1 + (h - win_h) / step_y,
+        blockHist[ 59 ] = {0}; /* for histogram counting */
+
     const unsigned char *pLbp = lbp_image;
 
     double *pFeat = feat_vec;
-    int feat_count = 0;
     double sqSum;
-    int i,j,ix,iy,bx,by,t,sz,sum;
-    int blockHist[ 59 ] = {0};
 
-    for (iy = 0; iy < height - win_h + 1; iy += step_y) {
-        for (ix = 0; ix < width - win_w + 1; ix += step_x) {
+    sz = win_w * win_h;
+    for (iy = 1; iy < height - win_h; iy += step_y) {
+        for (ix = 1; ix < width - win_w; ix += step_x) {
             memset(blockHist, 0, sizeof(int)*59);
       
             for (by = 0; by < win_h; ++by) {
@@ -174,34 +205,33 @@ void lbp_extract(const struct lbp_setting *setting,
             /* normalize block */
             switch(norm_type) {
                 
-                case 0: /* do nothing */
-                    for (i = 0; i < 59; ++i)
-                        pFeat[ feat_count++ ] = blockHist[i];
-                    break;
+            case 0: /* do nothing */
+                for (i = 0; i < 59; ++i)
+                    *pFeat ++ = blockHist[i];
+                break;
           
-                case 1: /* L1 norm */
-                    sz = win_w * win_h;
-                    for (i = 0; i < 59; ++i)
-                        pFeat[ feat_count++ ] = blockHist[i] * ( 1.0 / sz);
-                    break;
+            case 1: /* L1 norm */
+                for (i = 0; i < 59; ++i)
+                    *pFeat ++ = blockHist[i] * ( 1.0 / sz);
+                break;
           
-                case 2: /* L2 norm */
-                    /* It can't overflow here */
-                    sum = 0;
-                    sqSum = .0;
-                    for (i = 0; i < 59; ++i)
-                        sum += blockHist[ i ] * blockHist[ i ];
-                    sqSum = 1.0 / sqrt((double)sum);
-                    for (j = 0; j < 59; ++j)
-                        pFeat[ feat_count++ ] = blockHist[j] * sqSum; 
-                    break;
+            case 2: /* L2 norm */
+                /* It can't overflow here */
+                sum = 0;
+                sqSum = .0;
+                for (i = 0; i < 59; ++i)
+                    sum += blockHist[ i ] * blockHist[ i ];
+                sqSum = 1.0 / sqrt((double)sum);
+                for (j = 0; j < 59; ++j)
+                    *pFeat ++ = blockHist[j] * sqSum; 
+                break;
           
-                default: /* unsupported, do nothing */
-                    /**
-                     * @TODO give a warning msg ?
-                     */
-                    for (i = 0; i < 59; ++i)
-                        pFeat[ feat_count++ ] = blockHist[i];
+            default: /* unsupported, do nothing */
+                /**
+                 * @TODO give a warning msg ?
+                 */
+                for (i = 0; i < 59; ++i)
+                    *pFeat ++ = blockHist[i];
             }
         }
     }

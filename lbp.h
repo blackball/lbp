@@ -31,65 +31,19 @@ struct lbp_setting {
     int radius;   /* radius of lbp pattern, default = 1 */
 };
 
-/**
- * Set the LBP parameters.
- *
- * @setting allocated LBP setting structure
- * @win_w sliding window width
- * @win_h sliding window height
- * @step_x step size in x-direction
- * @step_y step size in y-direction
- */
-void lbp_init(struct lbp_setting *setting,
-              int win_w,
-              int win_h,
-              int step_x,
-              int step_y);
-/**
- * Get LBP length.
- *
- * @setting LBP params
- * @w image width
- * @ws width step
- * @h image height 
- */
-int lbp_length(const struct lbp_setting *setting,
-               int w,
-               int ws,
-               int h);
+void lbp_init(struct lbp_setting *setting,int win_w,
+              int win_h, int step_x, int step_y);
 
-/**
- * Calculate LBP image.
- *
- * @image_data raw gray-scale image data
- * @w image width
- * @ws width step or stride
- * @h image height
- * @lbp_image result LBP image buffer 
- */
+int lbp_length(const struct lbp_setting *setting,
+               int w, int h);
+
 void lbp_process(const unsigned char *image_data,
-                 int w,
-                 int ws,
-                 int h,
+                 int w, int ws, int h,
                  unsigned char *lbp_image);
-/**
- * Extract LBP feature from LBP image.
- * 
- * @setting LBP settings
- * @lbp_image LBP image
- * @w LBP image width
- * @ws 
- * @h LBP image height
- * @feat_vec allocated feature vector
- * @norm_type normalization method
- * used in every sliding window, 1 == L1, 2 == L2.
- */
+
 void lbp_extract(const struct lbp_setting *setting,
                  const unsigned char *lbp_image,
-                 int w,
-                 int ws,
-                 int h,
-                 double *feat_vec,
+                 int w, int ws, int h, double *feat_vec,
                  int norm_type);
 
 EXTERN_END

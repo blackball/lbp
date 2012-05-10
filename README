@@ -1,4 +1,7 @@
 Local binary pattern, A clean implementation.
 ====
 
+Note: The border are ignored both in LBP processing and Dense LBP feature extraction.
+
+
 @blackball (bugway@gmail.com)
