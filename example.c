@@ -32,8 +32,8 @@ static void _test() {
     assert( feat_vec != NULL );
   
     lbp_img = (unsigned char *)malloc(sizeof(unsigned char) *
-                                                     img->widthStep *
-                                                     img->height);
+                                      img->widthStep *
+                                      img->height);
     assert( lbp_img != NULL );
     
     /* perform LBP and store result image into lbp_img */
