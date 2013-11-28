@@ -211,19 +211,16 @@ void lbp_extract(const struct lbp_setting *setting,
                 break;
           
             case 1: /* L1 norm */
+                sz = 1.0 / sz; 
                 for (i = 0; i < 59; ++i)
-                    *pFeat ++ = blockHist[i] * ( 1.0 / sz);
+                    *pFeat ++ = blockHist[i] * (sz);
                 break;
           
             case 2: /* L2 norm */
                 /* It can't overflow here */
-                sum = 0;
-                sqSum = .0;
-                for (i = 0; i < 59; ++i)
-                    sum += blockHist[ i ] * blockHist[ i ];
-                sqSum = 1.0 / sqrt((double)sum);
+                sz = 1.0 / sz;
                 for (j = 0; j < 59; ++j)
-                    *pFeat ++ = blockHist[j] * sqSum; 
+                    *pFeat ++ = sqrt(blockHist[j]) * sz; 
                 break;
           
             default: /* unsupported, do nothing */
