@@ -4,4 +4,12 @@ Local binary pattern, A clean implementation.
 Note: The border are ignored both in LBP processing and Dense LBP feature extraction.
 
 
+Update:
+
+After two years, I decided to update this piece of codes. It was done in a really 
+bad way, and contained some wrong tricks. Hope it not hurt somebody before.
+
+I've written a new version in lbp-new.c
+
 @blackball (bugway@gmail.com)
+
