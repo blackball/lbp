@@ -99,6 +99,17 @@ lbp_init_uniform(void) {
  * In practice, it's hard to say which one is better, you need benchmark to prove.
  */
 
+/* Just map the raw LBP values to some other thing, like *uniform*...
+ */
+static void
+lbp_map(int *buffer, int w, int h) {
+        const int sz = w * h;
+        int i = 0;
+        for (; i < sz; ++i) {
+                buffer[i] = uniform_patterms[ buffer[i] ];
+        }
+}
+
 /*
  * The next step is to make a histogram.
  *
